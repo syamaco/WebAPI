@@ -7,13 +7,18 @@ using System.Web.Mvc;
 using System.Web.Mvc.Ajax;
 using Npgsql;
 using WebAPI.Models;
+using NLog;
 
 namespace WebAPI.Controllers
 {
 	public class HomeController : Controller
 	{
+		private static Logger log = LogManager.GetCurrentClassLogger();
+
 		public ActionResult Index()
 		{
+			log.Info("Start server at " + DateTime.Now);
+
 			var mvcName = typeof(Controller).Assembly.GetName();
 			var isMono = Type.GetType("Mono.Runtime") != null;
 
