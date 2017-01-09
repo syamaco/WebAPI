@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Formatting;
@@ -16,11 +17,13 @@ namespace WebAPI
 		public static void Register(HttpConfiguration config)
 		{
 			// Web API configuration and services
+
+			// CORS
 			var cors = new EnableCorsAttribute("http://localhost:8100", "*", "*");
 			cors.SupportsCredentials = true;
 			config.EnableCors(cors);
 
-			// Web API routes
+			// Routes
 			config.MapHttpAttributeRoutes();
 
 			config.Routes.MapHttpRoute(
@@ -29,6 +32,14 @@ namespace WebAPI
 				defaults: new { id = RouteParameter.Optional }
 			);
 
+			// Handles
+			config.MessageHandlers.Add(new MethodOverrideHandler());
+			config.MessageHandlers.Add(new HttpRequestHandler());
+
+			// Exceptions
+			config.Filters.Add(new GlobalExceptionFilter());
+
+			// Formats
 			//config.Formatters.Remove(config.Formatters.XmlFormatter);
 			config.Formatters.Add(new TestCsvFormatter());
 		}

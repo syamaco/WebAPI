@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web;
 using System.Web.Http;
+using Newtonsoft.Json;
 using WebAPI.Models;
 
 namespace WebAPI.Controllers
@@ -28,9 +29,25 @@ namespace WebAPI.Controllers
 
 		public Test Get(int id)
 		{
+			int _id = id;
+
+			try
+			{
+				var body = (string)Request.Properties["body"];
+				dynamic json = JsonConvert.DeserializeObject(body);
+				if (json.id != null)
+				{
+					_id = int.Parse((string)json.id);
+				}
+			}
+			catch (Exception ex)
+			{
+				return new Test() { id = -1, message = ex.Message, datetime = DateTime.Now };
+			}
+
 			using (var db = new PgDbContext())
 			{
-				return db.Test.SingleOrDefault(x => x.id == id) ?? new Test() { id = -1 };
+				return db.Test.SingleOrDefault(x => x.id == _id) ?? new Test() { id = -1 };
 			}
 		}
 
