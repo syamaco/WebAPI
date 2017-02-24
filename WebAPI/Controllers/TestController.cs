@@ -31,6 +31,7 @@ namespace WebAPI.Controllers
 		{
 			int _id = id;
 
+#if false
 			try
 			{
 				var body = (string)Request.Properties["body"];
@@ -44,10 +45,24 @@ namespace WebAPI.Controllers
 			{
 				return new Test() { id = -1, message = ex.Message, datetime = DateTime.Now };
 			}
-
+#endif
 			using (var db = new PgDbContext())
 			{
-				return db.Test.SingleOrDefault(x => x.id == _id) ?? new Test() { id = -1 };
+				using (var tran = db.Database.BeginTransaction())
+				{
+					try
+					{
+						db.Database.ExecuteSqlCommand("insert into test_del select *, now() from test where id = " + id);
+						db.Database.ExecuteSqlCommand("delete from test where id = " + id);
+						tran.Commit();
+						return db.Test.SingleOrDefault(x => x.id == _id) ?? new Test() { id = -1 };
+					}
+					catch (Exception ex)
+					{
+						tran.Rollback();
+						return new Test() { id = -1, message = ex.Message, datetime = DateTime.Now };
+					}
+				}
 			}
 		}
 
